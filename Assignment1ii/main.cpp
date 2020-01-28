@@ -77,64 +77,44 @@ int main(int argc, char *argv[])
         //Display left and right images
         imshow("Left",Left);
         imshow("Right", Right);
-        waitKey(10);
 
-        int actionChoice = 0;
 
+        /*
         //Read keypress and move the corresponding motor
         int key = waitKey(10);
         switch (key){
-//        case 'w': //up
-//            Ry=Ry+5;
-//            break;
+        case 'w': //up
+            Ry=Ry+5;
+            break;
         case 's'://down
-            actionChoice = 2;
+            Ry=Ry-5;
             break;
         case 'a'://left
-            actionChoice = 1;
+            Rx=Rx-5;
             break;
         case 'd'://right
-            actionChoice = 3;
+            Rx=Rx+5;
             break;
-        case 'f':
-            actionChoice = 4;
+        case 'i': //up
+            Ly=Ly-5;
             break;
-//        case 'i': //up
-//            Ly=Ly-5;
-//            break;
-//        case 'k'://down
-//            Ly=Ly+5;
-//            break;
-//        case 'j'://left
-//            Lx=Lx-5;
-//            break;
-//        case 'l'://right
-//            Lx=Lx+5;
-//            break;
+        case 'k'://down
+            Ly=Ly+5;
+            break;
+        case 'j'://left
+            Lx=Lx-5;
+            break;
+        case 'l'://right
+            Lx=Lx+5;
+            break;
         case 'e'://right
-            actionChoice = 0;
+            Neck=Neck+5;
             break;
-//        case 'q'://left
-//            Neck=Neck-5;
-//            break;
-        }
-        switch (actionChoice){
-          case 0:
-            Rx=1445;
-            Ry=1520;
-            Lx=1450;
-            Ly=1460;
-            break;
-          case 1:
-            break;
-          case 2:
-            break;
-          case 3:
-            break;
-          case 4:
+        case 'q'://left
+            Neck=Neck-5;
             break;
         }
-
+*/
         //Send new motor positions to the owl servos
         CMDstream.str("");
         CMDstream.clear();
