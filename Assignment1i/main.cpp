@@ -79,32 +79,38 @@ int main(int argc, char *argv[])
         imshow("Right", Right);
         waitKey(10);
         //Move through each angle of a sign wave
-        int i = round((Neck-1100)/5);
-        for(i; i<=160; i++){
+        int signvar = 1;
+        while(1){
+           double i = (round((Neck-1100)/5)+10); //Current Neck angle in degrees
            //Convert from degrees to radians
-           double y = i*(pi/(180));
+           double y = i*(pi/180);
            //Get the output from sin
            double x =  sin(y);
-           Neck = Neck + round((x*5)+5);
+           Neck = Neck + signvar*((x*20)); //Add +/- Sin(theta)*speed modifier
+           //Send update
            CMDstream.str("");
            CMDstream.clear();
            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
            CMD = CMDstream.str();
            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-           waitKey(10);
-           cout<< Neck<< endl;
+           //Wait to update
+           waitKey(9);
+           //Change sign of update
+           if((i == 170 && signvar == 1) || (i == 10 && signvar == -1)) {
+               signvar = -signvar;
+           }
         }
-        for(i = 160; i >=0; i--){
-            double y = i*(pi/(180));
-            double x =  sin(y);
-            Neck = Neck - round((x*5)+5);
-            CMDstream.str("");
-            CMDstream.clear();
-            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
-            CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            waitKey(10);
-        }
+//        for(i = 170; i >=10; i--){
+//            double y = i*(pi/(180));
+//            double x =  sin(y);
+//            Neck = Neck - round(x*5);
+//            CMDstream.str("");
+//            CMDstream.clear();
+//            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+//            CMD = CMDstream.str();
+//            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+//            waitKey(10);
+//        }
         /*
         //Read keypress and move the corresponding motor
         int key = waitKey(10);
