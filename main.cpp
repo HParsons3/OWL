@@ -1,10 +1,8 @@
 /*
 Phil Culverhouse Oct 2016 (c) Plymouth University
 James Rogers Jan 2020     (c) Plymouth University
-
 This demo code will move eye and neck servos with kepresses.
 Use this code as a base for your assignment.
-
 */
 
 #include <iostream>
@@ -21,6 +19,8 @@ Use this code as a base for your assignment.
 
 using namespace std;
 using namespace cv;
+
+double pi = 3.14159265359;
 
 int main(int argc, char *argv[])
 {
@@ -55,6 +55,10 @@ int main(int argc, char *argv[])
     }
     int Direction = 1;
     int actionChoice = 0;
+    int TL;
+    int TR;
+    int rollSection = 0;
+    int crossDirection;
     //main program loop
     while (1){
         if (!cap.read(Frame))
@@ -137,90 +141,76 @@ int main(int argc, char *argv[])
             if((Rx == 1870 && Direction == 1) || (Rx == 1200 && Direction == -1)) {
                 Direction = -Direction;
             }
-            waitKey(10);
+            Sleep(10);
             break;
           case 2:
             //Chameleon eyes
-            int TL = rand() % 2000 + 50;
-            int TR = rand() % 2000 + 50;
-            Lx = rand() % 1850 + 1180;
-            Ly = rand() % 2000 + 1180;
-            waitKey(TL);
+            TL = rand() % 100;
+            TR = rand() % 100;
+            if (TL >= 97) {
+            Lx = (rand() % 670) + 1180;
+            Ly = (rand() % 820) + 1180;
+            Sleep(TL);
             CMDstream.str("");
             CMDstream.clear();
             CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
             CMD = CMDstream.str();
             RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            waitKey(TR);
-            Rx = rand() % 1890 + 1200;
-            Ry = rand() % 2000 + 1120;
+            }
+            if (TR >= 97) {
+            Rx = (rand() % 690) + 1200;
+            Ry = (rand() % 880) + 1120;
             CMDstream.str("");
             CMDstream.clear();
             CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
             CMD = CMDstream.str();
             RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+            }
             break;
           case 3:
             //Roll
-            Rx = RxRm;
-            Ry = RyTm;
-            Lx = LxRm;
-            Ly = LyTm;
-            CMDstream.str("");
-            CMDstream.clear();
-            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
-            CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            waitKey(20);
-            Rx = RxLm;
-            Ry = RyTm;
-            Lx = LxLm;
-            Ly = LyTm;
-            CMDstream.str("");
-            CMDstream.clear();
-            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
-            CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            waitKey(20);
-            Rx = RxLm;
-            Ry = RyBm;
-            Lx = LxLm;
-            Ly = LyBm;
-            CMDstream.str("");
-            CMDstream.clear();
-            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
-            CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            waitKey(20);
-            Rx = RxRm;
-            Ry = RyBm;
-            Lx = LxRm;
-            Ly = LyBm;
-            CMDstream.str("");
-            CMDstream.clear();
-            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
-            CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            waitKey(20);
+            Rx = round(1545+(sin(5*rollSection*(pi/180))*335));
+            Lx = round(1515+(sin(5*rollSection*(pi/180))*335));
+            Ry = round(1760+(sin((5*rollSection+90)*(pi/180))*240));
+            Ly = round(1320+(sin((5*rollSection+90)*(pi/180))*-140));
+//            CMDstream.str("");
+//            CMDstream.clear();
+//            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+//            CMD = CMDstream.str();
+//            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+            rollSection++;
+            Sleep(5);
             break;
           case 4:
             //Cross-eyed
-            Rx = RxRm;
-            Lx = LxLm;
-            CMDstream.str("");
-            CMDstream.clear();
-            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
-            CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            waitKey(20);
-            Rx = 1445;
-            Lx = 1450;
-            CMDstream.str("");
-            CMDstream.clear();
-            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
-            CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            waitKey(20);
+            Ry = 1520;
+            Ly = 1460;
+            if(Rx <= RxLm) {
+                crossDirection = 1;
+            }
+            else if(Rx >= RxC) {
+                crossDirection = -1;
+            }
+            Rx = Rx + 20*crossDirection;
+            Lx = Lx - 20*crossDirection;
+            Sleep(5);
+
+//            Rx = RxLm;
+//            Lx = LxRm;
+//            CMDstream.str("");
+//            CMDstream.clear();
+//            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+//            CMD = CMDstream.str();
+//            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+//            Sleep(250);
+//            Rx = 1445;
+//            Lx = 1450;
+//            CMDstream.str("");
+//            CMDstream.clear();
+//            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+//            CMD = CMDstream.str();
+//            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+//            Sleep(250);
             break;
         }
 
