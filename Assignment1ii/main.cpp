@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     int TL;
     int TR;
     int rollSection = 0;
-    int crossDirection;
+    int crossDirection = 1;
     //main program loop
     while (1){
         if (!cap.read(Frame))
@@ -131,68 +131,64 @@ int main(int argc, char *argv[])
             break;
           case 1:
             //Horizontal Scan
-            Rx = Rx + Direction*5;
+            Rx = Rx + Direction*5; //Modify x value by 5 or -5, depending on which direction
             Lx = Lx + Direction*5;
             CMDstream.str("");
             CMDstream.clear();
             CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
             CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+            RxPacket= OwlSendPacket (u_sock, CMD.c_str()); //Update
             if((Rx == 1870 && Direction == 1) || (Rx == 1200 && Direction == -1)) {
-                Direction = -Direction;
+                Direction = -Direction; //If the eye reaches the max or min value, swap direction
             }
             Sleep(10);
             break;
           case 2:
             //Chameleon eyes
-            TL = rand() % 100;
+            TL = rand() % 100; //Random percentage
             TR = rand() % 100;
-            if (TL >= 97) {
-            Lx = (rand() % 670) + 1180;
-            Ly = (rand() % 820) + 1180;
-            Sleep(TL);
+            if (TL >= 97) { //3% chance every iteration to choose new location
+            Lx = (rand() % 670) + 1180; //Random angle values from min to max, using formula [(Random from 0 to (Max-min)) + min]
+            Ly = (rand() % 820) + 1180; 
             CMDstream.str("");
             CMDstream.clear();
             CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
             CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+            RxPacket= OwlSendPacket (u_sock, CMD.c_str()); //Update 
             }
             if (TR >= 97) {
-            Rx = (rand() % 690) + 1200;
+            Rx = (rand() % 690) + 1200; //Same formula as left eye
             Ry = (rand() % 880) + 1120;
             CMDstream.str("");
             CMDstream.clear();
             CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
             CMD = CMDstream.str();
-            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+            RxPacket= OwlSendPacket (u_sock, CMD.c_str()); //Update
             }
             break;
           case 3:
             //Roll
-            Rx = round(1545+(sin(5*rollSection*(pi/180))*335));
-            Lx = round(1515+(sin(5*rollSection*(pi/180))*335));
-            Ry = round(1760+(sin((5*rollSection+90)*(pi/180))*240));
-            Ly = round(1320+(sin((5*rollSection+90)*(pi/180))*-140));
+            Rx = round(1545+(sin(5*rollSection*(pi/180))*335)); //Median value + (sin(desired angle in radians)*((Max-Min)/2)
+            Lx = round(1515+(sin(5*rollSection*(pi/180))*335)); //This gives a sinusoidal movement to x axis
+            Ry = round(1760+(sin((5*rollSection+90)*(pi/180))*240)); //Added 90 degrees to desired angle of y, otherwise we get a diagonal instead of circular
+            Ly = round(1320+(sin((5*rollSection+90)*(pi/180))*-140)); //*-140 because the left eye's y axis is reversed
 //            CMDstream.str("");
 //            CMDstream.clear();
 //            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
 //            CMD = CMDstream.str();
 //            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-            rollSection++;
+            rollSection++; //Increment angle
             Sleep(5);
             break;
           case 4:
             //Cross-eyed
-            Ry = 1520;
+            Ry = 1520; //Set y axis to medium
             Ly = 1460;
-            if(Rx <= RxLm) {
-                crossDirection = 1;
-            }
-            else if(Rx >= RxC) {
-                crossDirection = -1;
-            }
-            Rx = Rx + 20*crossDirection;
-            Lx = Lx - 20*crossDirection;
+            if((Rx <= RxLm) || (Rx >= RxC)) {
+                crossDirection = -crossDirection; //If the eye reaches the set min or max (from leftmost to middle), reverse direction
+            } 
+            Rx = Rx + 20*crossDirection; //Move in the desired direction
+            Lx = Lx - 20*crossDirection; //opposite direction, as we are looking for cross-eyes, not looking the same way.
             Sleep(5);
 
 //            Rx = RxLm;
