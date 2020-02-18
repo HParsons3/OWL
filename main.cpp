@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     int TL;
     int TR;
     int rollSection = 0;
-    int crossDirection;
+    int crossDirection = 1;
     //main program loop
     while (1){
         if (!cap.read(Frame))
@@ -184,8 +184,8 @@ int main(int argc, char *argv[])
             //Cross-eyed
             Ry = 1520; //Set y axis to medium
             Ly = 1460;
-            if((Rx <= RxLm) || (Rx >= RxC) {
-                crossDirection = !crossDirection; //If the eye reaches the set min or max (from leftmost to middle), reverse direction
+            if((Rx <= RxLm) || (Rx >= RxC)) {
+                crossDirection = -crossDirection; //If the eye reaches the set min or max (from leftmost to middle), reverse direction
             } 
             Rx = Rx + 20*crossDirection; //Move in the desired direction
             Lx = Lx - 20*crossDirection; //opposite direction, as we are looking for cross-eyes, not looking the same way.
