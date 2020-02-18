@@ -1,12 +1,3 @@
-/*
-Phil Culverhouse Oct 2016 (c) Plymouth University
-James Rogers Jan 2020     (c) Plymouth University
-
-This demo code will move eye and neck servos with kepresses.
-Use this code as a base for your assignment.
-
-*/
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -56,28 +47,28 @@ int main(int argc, char *argv[])
 
     //main program loop
     while (1){
-        if (!cap.read(Frame))
-        {
-            cout  << "Could not open the input video: " << source << endl;
-            break;
-        }
+//        if (!cap.read(Frame))
+//        {
+//            cout  << "Could not open the input video: " << source << endl;
+//            break;
+//        }
 
-        //flip input image as it comes in reversed
-        Mat FrameFlpd;
-        flip(Frame,FrameFlpd,1);
+//        //flip input image as it comes in reversed
+//        Mat FrameFlpd;
+//        flip(Frame,FrameFlpd,1);
 
-        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
-        Left= FrameFlpd(Rect(0, 0, 640, 480)); // using a rectangle
-        Right=FrameFlpd(Rect(640, 0, 640, 480)); // using a rectangle
+//        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
+//        Left= FrameFlpd(Rect(0, 0, 640, 480)); // using a rectangle
+//        Right=FrameFlpd(Rect(640, 0, 640, 480)); // using a rectangle
 
-        //Draw a circle in the middle of the left and right image (usefull for aligning both cameras)
-        circle(Left,Point(Left.size().width/2,Left.size().height/2),10,Scalar(255,255,255),1);
-        circle(Right,Point(Right.size().width/2,Right.size().height/2),10,Scalar(255,255,255),1);
+//        //Draw a circle in the middle of the left and right image (usefull for aligning both cameras)
+//        circle(Left,Point(Left.size().width/2,Left.size().height/2),10,Scalar(255,255,255),1);
+//        circle(Right,Point(Right.size().width/2,Right.size().height/2),10,Scalar(255,255,255),1);
 
-        //Display left and right images
-        imshow("Left",Left);
-        imshow("Right", Right);
-        waitKey(10);
+//        //Display left and right images
+//        imshow("Left",Left);
+//        imshow("Right", Right);
+//        waitKey(10);
         //Move through each angle of a sign wave
         int signvar = 1;
         while(1){
@@ -93,12 +84,32 @@ int main(int argc, char *argv[])
            CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
            CMD = CMDstream.str();
            RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-           //Wait to update
-           waitKey(9);
            //Change sign of update
            if((i == 170 && signvar == 1) || (i == 10 && signvar == -1)) {
                signvar = -signvar;
            }
+           if (!cap.read(Frame))
+           {
+               cout  << "Could not open the input video: " << source << endl;
+               break;
+           }
+
+           //flip input image as it comes in reversed
+           Mat FrameFlpd;
+           flip(Frame,FrameFlpd,1);
+
+           // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
+           Left= FrameFlpd(Rect(0, 0, 640, 480)); // using a rectangle
+           Right=FrameFlpd(Rect(640, 0, 640, 480)); // using a rectangle
+
+           //Draw a circle in the middle of the left and right image (usefull for aligning both cameras)
+           circle(Left,Point(Left.size().width/2,Left.size().height/2),10,Scalar(255,255,255),1);
+           circle(Right,Point(Right.size().width/2,Right.size().height/2),10,Scalar(255,255,255),1);
+
+           //Display left and right images
+           imshow("Left",Left);
+           imshow("Right", Right);
+           waitKey(10);
         }
 //        for(i = 170; i >=10; i--){
 //            double y = i*(pi/(180));
@@ -169,3 +180,4 @@ int main(int argc, char *argv[])
 #endif
     exit(0); // exit here for servo testing only
 }
+
