@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
             Tracking=true;
             //Rect target= Rect(320-32, 240-32, 64, 64); //defined in owl-cv.h
             OWLtempl=Right(target); //set the tracking template to whatever is within the tracking window in the right eye
-//            OWLtempl=Left(target); //set the tracking template to whatever is within the tracking window in the right eye
+//            OWLtempl=Left(target); //set the tracking template to whatever is within the tracking window in the left eye
             break;
         }
 
@@ -134,6 +134,9 @@ int main(int argc, char *argv[])
     }
 
     //tracking loop
+    //Initialize the values for XoffOld
+    double XoffOld = 0;
+    double Xoff2Old = 0;
     while(1){
 
         if (!cap.read(Frame))
@@ -152,16 +155,16 @@ int main(int argc, char *argv[])
 
         //match template within right eye
         OwlCorrel OWLRight;
-        OWLRight = Owl_matchTemplate(Left, OWLtempl);
+        OWLRight = Owl_matchTemplate(Right, OWLtempl);
         OwlCorrel OWLLeft;
-        OWLLeft = Owl_matchTemplate(Right, OWLtempl);
+        OWLLeft = Owl_matchTemplate(Left, OWLtempl);
 
 
         //Draw a rectangle to define the tracking window
         rectangle(Right, target, Scalar::all(255), 2, 8, 0 );
-        rectangle(Left, OWLRight.Match, Point( OWLRight.Match.x + OWLtempl.cols , OWLRight.Match.y + OWLtempl.rows), Scalar::all(255), 2, 8, 0 );
+        rectangle(Right, OWLRight.Match, Point( OWLRight.Match.x + OWLtempl.cols , OWLRight.Match.y + OWLtempl.rows), Scalar::all(255), 2, 8, 0 );
         rectangle(Left, target, Scalar::all(255), 2, 8, 0 );
-        rectangle(Right, OWLLeft.Match, Point( OWLLeft.Match.x + OWLtempl.cols , OWLLeft.Match.y + OWLtempl.rows), Scalar::all(255), 2, 8, 0 );
+        rectangle(Left, OWLLeft.Match, Point( OWLLeft.Match.x + OWLtempl.cols , OWLLeft.Match.y + OWLtempl.rows), Scalar::all(255), 2, 8, 0 );
         //Display images
         imshow("Target",OWLtempl);
         imshow("Left", Left);
@@ -170,25 +173,36 @@ int main(int argc, char *argv[])
         imshow("CorrelLeft",OWLLeft.Result );
         waitKey(10);
 
-        //Control the left eye to track the target
+        //Control the left and right eye to track the target
         //try altering KPx & KPy to see the settling time/overshoot
         double KPx=0.05; // track rate X
         double KPy=0.05; // track rate Y
 
         //Update x-axis value based on target pos
         double LxScaleV = LxRangeV/static_cast<double>(640);            //Calculate number of pwm steps per pixel
-        double Xoff= (OWLRight.Match.x + OWLtempl.cols/2 -320)/LxScaleV ;    //Compare to centre of image
+        double Xoff= (OWLLeft.Match.x + OWLtempl.cols/2 -320)/LxScaleV ;    //Compare to centre of image
         Lx=static_cast<int>(Lx+Xoff*KPx);                               //Update Servo position
-        double RxScaleV = LxRangeV/static_cast<double>(640);
+        double RxScaleV = RxRangeV/static_cast<double>(640);
         double Xoff2= (OWLRight.Match.x + OWLtempl.cols/2 -320)/RxScaleV ;    //Compare to centre of image
         Rx=static_cast<int>(Rx+Xoff2*KPx);
+
+        //Define the integrals for xoff and xoff2
+        double xi;
+        double xi2;
+        //Define the differential for xoff and xoff2
+        double xd;
+        double xd2;
+        //Keep the previous values of xoff
+        double XoffOld = Xoff;
+        double Xoff2Old = Xoff2;
+
         //Update y-axis value based on target pos
         double LyScaleV = LyRangeV/static_cast<double>(480);            //Calculate number of pwm steps per pixel
         double Yoff= ((OWLLeft.Match.y + OWLtempl.rows/2 - 240)/LyScaleV) ; //Compare to centre of image
-        Ry=static_cast<int>(Ry-Yoff*KPy);                               //Update Servo position
+        Ly=static_cast<int>(Ly-Yoff*KPy);                               //Update Servo position
         double RyScaleV = RyRangeV/static_cast<double>(480);            //Calculate number of pwm steps per pixel
         double Yoff2= ((OWLRight.Match.y + OWLtempl.rows/2 - 240)/RyScaleV) ; //Compare to centre of image
-        Ly=static_cast<int>(Ly+Yoff2*KPy);                               //Update Servo position
+        Ry=static_cast<int>(Ry-Yoff2*KPy);                               //Update Servo position
 
         //Send new motor positions to the owl servos
         CMDstream.str("");
