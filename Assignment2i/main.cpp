@@ -137,6 +137,18 @@ int main(int argc, char *argv[])
     //Initialize the values for XoffOld
     double XoffOld = 0;
     double Xoff2Old = 0;
+    //Initialize the values for YoffOld
+    double YoffOld = 0;
+    double Yoff2Old = 0;
+    double PropGain = 1;
+    double IntGain = 1;
+    double DifGain = 1;
+    double PreviousErrorLeftX = 0;
+    double PreviousErrorRightX = 0;
+    double PreviousErrorLeftY = 0;
+    double PreviousErrorRightY = 0;
+    double LoopTime = 1;
+
     while(1){
 
         if (!cap.read(Frame))
@@ -186,15 +198,38 @@ int main(int argc, char *argv[])
         double Xoff2= (OWLRight.Match.x + OWLtempl.cols/2 -320)/RxScaleV ;    //Compare to centre of image
         Rx=static_cast<int>(Rx+Xoff2*KPx);
 
+
+        /*
+         *
+         *  P I D   C O N T R O L   X - A X I S
+         *
+         *
+         */
+
+        //Calculate the error between the two values
+        double errorLeftX = Xoff - XoffOld;
+        double errorRightX = Xoff2 - Xoff2Old;
+
+        //Calculate the proportional terms
+        double XPropLeft = PropGain * errorLeftX;
+        double XPropRight = PropGain * errorRightX;
+
         //Define the integrals for xoff and xoff2
-        double xi;
-        double xi2;
+        double CalcIntegralLeftX = CalcIntegralLeftX + (errorLeftX * LoopTime);
+        double CalcIntegralRightX = CalcIntegralRightX + (errorRightX * LoopTime);
+        double XIntegralLeft = IntGain * CalcIntegralLeftX;
+        double XIntegralRight = IntGain * CalcIntegralRightX;
         //Define the differential for xoff and xoff2
-        double xd;
-        double xd2;
+        double XDifferentialLeft = (errorLeftX - PreviousErrorLeftX)/LoopTime;
+        double XDifferentialRight = (errorLeftX - PreviousErrorLeftX)/LoopTime;
         //Keep the previous values of xoff
         double XoffOld = Xoff;
         double Xoff2Old = Xoff2;
+        PreviousErrorLeftX = errorLeftX;
+        PreviousErrorRightX = errorRightX;
+
+        double PIDoutLeftX = XPropLeft + XIntegralLeft + XDifferentialLeft;
+        double PIDoutRightX = XPropRight + XIntegralRight + XDifferentialRight;
 
         //Update y-axis value based on target pos
         double LyScaleV = LyRangeV/static_cast<double>(480);            //Calculate number of pwm steps per pixel
@@ -203,6 +238,38 @@ int main(int argc, char *argv[])
         double RyScaleV = RyRangeV/static_cast<double>(480);            //Calculate number of pwm steps per pixel
         double Yoff2= ((OWLRight.Match.y + OWLtempl.rows/2 - 240)/RyScaleV) ; //Compare to centre of image
         Ry=static_cast<int>(Ry-Yoff2*KPy);                               //Update Servo position
+
+        /*
+         *
+         *  P I D   C O N T R O L   Y - A X I S
+         *
+         *
+         */
+        //Calculate the error between the two values
+        double errorLeftY = Yoff - YoffOld;
+        double errorRightY = Yoff2 - Yoff2Old;
+
+        //Calculate the proportional terms
+        double YPropLeft = PropGain * errorLeftY;
+        double YPropRight = PropGain * errorRightY;
+
+        //Define the integrals for xoff and xoff2
+        double CalcIntegralLeftY = CalcIntegralLeftY + (errorLeftY * LoopTime);
+        double CalcIntegralRightY = CalcIntegralRightY + (errorRightY * LoopTime);
+        double YIntegralLeft = IntGain * CalcIntegralLeftY;
+        double YIntegralRight = IntGain * CalcIntegralRightY;
+        //Define the differential for xoff and xoff2
+        double YDifferentialLeft = (errorLeftY - PreviousErrorLeftY)/LoopTime;
+        double YDifferentialRight = (errorLeftY - PreviousErrorLeftY)/LoopTime;
+        //Keep the previous values of xoff
+        double YoffOld = Yoff;
+        double Yoff2Old = Yoff2;
+        PreviousErrorLeftY = errorLeftY;
+        PreviousErrorRightY = errorRightY;
+
+        double PIDoutLeftY = YPropLeft + YIntegralLeft + YDifferentialLeft;
+        double PIDoutRightY = YPropRight + YIntegralRight + YDifferentialRight;
+
 
         //Send new motor positions to the owl servos
         CMDstream.str("");
