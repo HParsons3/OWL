@@ -140,9 +140,9 @@ int main(int argc, char *argv[])
     //Initialize the values for YoffOld
     double YoffOld = 0;
     double Yoff2Old = 0;
-    double PropGain = 1;
-    double IntGain = 1;
-    double DifGain = 1;
+    double PropGain = 2.7;
+    double IntGain = 0.0001;
+    double DifGain = 200;
     double PreviousErrorLeftX = 0;
     double PreviousErrorRightX = 0;
     double PreviousErrorLeftY = 0;
@@ -193,10 +193,10 @@ int main(int argc, char *argv[])
         //Update x-axis value based on target pos
         double LxScaleV = LxRangeV/static_cast<double>(640);            //Calculate number of pwm steps per pixel
         double Xoff= (OWLLeft.Match.x + OWLtempl.cols/2 -320)/LxScaleV ;    //Compare to centre of image
-        Lx=static_cast<int>(Lx+Xoff*KPx);                               //Update Servo position
+        //Lx=static_cast<int>(Lx+Xoff*KPx);                               //Update Servo position
         double RxScaleV = RxRangeV/static_cast<double>(640);
         double Xoff2= (OWLRight.Match.x + OWLtempl.cols/2 -320)/RxScaleV ;    //Compare to centre of image
-        Rx=static_cast<int>(Rx+Xoff2*KPx);
+        //Rx=static_cast<int>(Rx+Xoff2*KPx);
 
 
         /*
@@ -230,6 +230,10 @@ int main(int argc, char *argv[])
 
         double PIDoutLeftX = XPropLeft + XIntegralLeft + XDifferentialLeft;
         double PIDoutRightX = XPropRight + XIntegralRight + XDifferentialRight;
+        Xoff = PIDoutLeftX;
+        Xoff2 = PIDoutRightX;
+        Lx=static_cast<int>(Lx+Xoff*KPx);
+        Rx=static_cast<int>(Rx+Xoff2*KPx);
 
         //Update y-axis value based on target pos
         double LyScaleV = LyRangeV/static_cast<double>(480);            //Calculate number of pwm steps per pixel
