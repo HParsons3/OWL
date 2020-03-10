@@ -20,6 +20,13 @@ Use this code as a base for your assignment.
 #include "owl-comms.h"
 #include "owl-cv.h"
 
+#define IPD 60
+#define pi 3.14159
+#define RxT 1441
+#define LxT 1420
+#define RyT 1521
+#define LyT 1459
+
 using namespace std;
 using namespace cv;
 
@@ -140,9 +147,9 @@ int main(int argc, char *argv[])
     //Initialize the values for YoffOld
     double YoffOld = 0;
     double Yoff2Old = 0;
-    double PropGain = 2.7;
-    double IntGain = 0.0001;
-    double DifGain = 200;
+    double PropGain = 2.7;  //Accuracy
+    double IntGain = 0.0001;    //Speed
+    double DifGain = 2;   //Acceleration
     double PreviousErrorLeftX = 0;
     double PreviousErrorRightX = 0;
     double PreviousErrorLeftY = 0;
@@ -238,10 +245,10 @@ int main(int argc, char *argv[])
         //Update y-axis value based on target pos
         double LyScaleV = LyRangeV/static_cast<double>(480);            //Calculate number of pwm steps per pixel
         double Yoff= ((OWLLeft.Match.y + OWLtempl.rows/2 - 240)/LyScaleV) ; //Compare to centre of image
-        Ly=static_cast<int>(Ly-Yoff*KPy);                               //Update Servo position
+//        Ly=static_cast<int>(Ly-Yoff*KPy);                               //Update Servo position
         double RyScaleV = RyRangeV/static_cast<double>(480);            //Calculate number of pwm steps per pixel
         double Yoff2= ((OWLRight.Match.y + OWLtempl.rows/2 - 240)/RyScaleV) ; //Compare to centre of image
-        Ry=static_cast<int>(Ry-Yoff2*KPy);                               //Update Servo position
+//        Ry=static_cast<int>(Ry-Yoff2*KPy);                               //Update Servo position
 
         /*
          *
@@ -273,7 +280,10 @@ int main(int argc, char *argv[])
 
         double PIDoutLeftY = YPropLeft + YIntegralLeft + YDifferentialLeft;
         double PIDoutRightY = YPropRight + YIntegralRight + YDifferentialRight;
-
+        Yoff = PIDoutLeftY;
+        Yoff2 = PIDoutRightY;
+        Ly=static_cast<int>(Ly-Yoff*KPy);
+        Ry=static_cast<int>(Ry-Yoff2*KPy);
 
         //Send new motor positions to the owl servos
         CMDstream.str("");
@@ -281,6 +291,28 @@ int main(int argc, char *argv[])
         CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
         CMD = CMDstream.str();
         RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+        /*
+         *
+         *  Vergence control
+         *
+         *
+         */
+
+        //Calculate the steps between current position and the center point
+        double StepdifR = (Rx-RxT);
+        double StepdifL = (Lx-LxT);
+        //Calculate the angle equivalent of the step points
+        double AngleLeft = (StepdifL/4)*(pi/180);
+        double AngleRight = (StepdifR/4)*(pi/180);
+        double DistanceLeft = (IPD*cos(AngleLeft))/sin(AngleLeft + AngleRight);
+        double DistanceRight = (IPD*cos(AngleRight))/sin(AngleLeft + AngleRight);
+        double DistanceCalc = sqrt((DistanceLeft*DistanceLeft)+900-DistanceLeft*IPD*sin(AngleLeft));
+//        cout << "Distance Left" << DistanceLeft << "\n\r";
+//        cout << "Distance Right" << DistanceRight << "\n\r";
+        double DisplayDistance = round(DistanceCalc)/10;
+        cout << "Distance:" << DisplayDistance << "\n\r";
+
     }
 }
 
