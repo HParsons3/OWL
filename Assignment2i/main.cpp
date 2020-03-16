@@ -20,6 +20,8 @@ Use this code as a base for your assignment.
 #include "owl-comms.h"
 #include "owl-cv.h"
 
+#define PX2DEG 0.0768 //X-axis field of view of camera/x-pixels
+#define DEG2PWM 10.730 // servo steps per degree of rotation
 #define IPD 60
 #define pi 3.14159
 #define RxT 1441
@@ -300,14 +302,17 @@ int main(int argc, char *argv[])
          */
 
         //Calculate the steps between current position and the center point
-        double StepdifR = (Rx-RxT);
-        double StepdifL = (Lx-LxT);
+        //double StepdifR = (Rx-RxT);
+        //double StepdifL = (Lx-LxT);
         //Calculate the angle equivalent of the step points
-        double AngleLeft = (StepdifL/4)*(pi/180);
-        double AngleRight = (StepdifR/4)*(pi/180);
+        //double AngleLeft = (StepdifL/4)*(pi/180);
+        //double AngleRight = (StepdifR/4)*(pi/180);
+        float AngleRight=(float(Rx-RxC)*pi)/(DEG2PWM*180); // in radians
+        float AngleLeft=(float(Lx-LxC)*pi)/(DEG2PWM*180);
         double DistanceLeft = (IPD*cos(AngleLeft))/sin(AngleLeft + AngleRight);
         double DistanceRight = (IPD*cos(AngleRight))/sin(AngleLeft + AngleRight);
         double DistanceCalc = sqrt((DistanceLeft*DistanceLeft)+900-DistanceLeft*IPD*sin(AngleLeft));
+//        cout << "Right x" << Rx << "Left x" << Lx << "\n\r";
 //        cout << "Distance Left" << DistanceLeft << "\n\r";
 //        cout << "Distance Right" << DistanceRight << "\n\r";
         double DisplayDistance = round(DistanceCalc)/10;

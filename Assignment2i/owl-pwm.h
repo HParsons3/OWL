@@ -30,9 +30,11 @@ static int LxRv = 1835; // (right) to
 static int LxLv = 1265; // (left)
 
 //Servo Center Positions (Need calibration)
-static int RxC=1445;
+//static int RxC=1445;
+static int RxC=1442;
 static int RyC=1520;
-static int LxC=1450;
+//static int LxC=1450;
+static int LxC=1427;
 static int LyC=1460;
 static int NeckC = 1520;
 
